@@ -13,8 +13,8 @@ $tickets = @()
 $ticketMessages = @()
 $csvData = @()
 
-$ticketNumber = 1
-$limit = 1000
+$ticketNumber = 58534
+$limit = 70000
 
 $totalCalls = 0
 
@@ -35,42 +35,26 @@ try {
             #Get Ticket and Message Data
             $ticketURL = "$baseUrl/tickets/$ticketNumber"
             $ticketMessageURL = "$baseUrl/tickets/$ticketNumber/messages"
-            
-            #Build ticket data
-            Write-Host "Building Data for Ticket $ticketNumber...."
-            $ticketresponse = Invoke-DeskproAPI -Uri $ticketURL
-            $waitTime = 300
-            while (($ticketresponse -eq "Unauthorized" -or ($ticketresponse -eq "Forbidden"))) {
-                Write-host "IP Throttling hit. Waiting to appease API"
-                Wait-WithProgress -Seconds $waitTime
-                $waitTime += 300
+            try {
+                #Build ticket data
+                Write-Host "Building Data for Ticket $ticketNumber...."
+                $ticketresponse = Invoke-DeskproAPI -Uri $ticketURL
 
-                $messageResponse = Invoke-DeskproAPI -Uri $ticketMessageURL
-            }
-            $totalCalls++
-
-            #start-sleep -seconds 1
-            if (!($null -eq $ticketresponse)) {
-                $tickets += $ticketresponse.data
-            }
+                #start-sleep -seconds 1
+                if (!($null -eq $ticketresponse)) {
+                    $tickets += $ticketresponse.data
+                }
             
-            #Build Message Data
-            $messageResponse = Invoke-DeskproAPI -Uri $ticketMessageURL 
-            $waitTime = 300
-            while (($messageResponse -eq "Unauthorized" -or ($ticketresponse -eq "Forbidden"))) {
-                Write-host "IP Throttling hit. Waiting to appease API"
-                Wait-WithProgress -Seconds $waitTime
-                $waitTime = $waitTime + 300
-
-                $messageResponse = Invoke-DeskproAPI -Uri $ticketMessageURL
-            }
-            $totalCalls++
+                #Build Message Data
+                $messageResponse = Invoke-DeskproAPI -Uri $ticketMessageURL 
             
-            #start-sleep -seconds 1
-            if (!($null -eq $messageResponse)) {
-                $ticketMessages += $messageResponse.data
+                #start-sleep -seconds 1
+                if (!($null -eq $messageResponse)) {
+                    $ticketMessages += $messageResponse.data
+                }
+            } finally {
+                $totalCalls++
             }
-            $totalCalls++
 
             $ticketNumber++
 
